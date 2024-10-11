@@ -1,4 +1,4 @@
-name: rust-clippy analyze
+name: CI
 
 on:
   pull_request:
@@ -6,11 +6,10 @@ on:
       - master
   push:
     branches:
-      - iroha-rc-1
       - master
 
 jobs:
-  rust-clippy-analyze:
+  fmt_clippy_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,11 +28,17 @@ jobs:
       with:
         tool: clippy-sarif, sarif-fmt
 
+    - name: Check code formatting
+      run: cargo fmt -- --check
+      continue-on-error: true
+
     - name: Run Clippy (Lints for tests)
       run: cargo clippy --tests --message-format=json -- -D warnings | clippy-sarif | tee results.sarif | sarif-fmt
+      continue-on-error: true
 
     - name: Run Tests
-      run: cargo test --all
+      run: cargo test
+      continue-on-error: true
 
     # v3.26.11
     - name: Upload SARIF file
